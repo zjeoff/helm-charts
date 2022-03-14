@@ -389,6 +389,7 @@ mysql_metrics:
         GROUP BY table_schema
       values:
         - "size_in_mb"
+        
     - name: openstack_user_last_active_at
       help: User list based on last_active_at
       labels:
@@ -405,7 +406,7 @@ mysql_metrics:
           user.id as user_id,
           COALESCE(id_mapping.local_id, "No User Name") as sap_id,
           user.created_at as created_at,
-          COALESCE(user.last_active_at, "No last_active_at timestamp") as last_active_at,
+          UNIX_TIMESTAMP(STR_TO_DATE(IFNULL(last_active_at,'1970-01-01 00:00:00'), '%Y-%c-%e %T')) AS last_active_at,
           COALESCE(json_extract(user.extra, '$**.email'), "No Email-ID") AS email_id, 
           json_extract(user.extra, '$**.description') AS user_name,
           domain.name as domain_name
@@ -415,7 +416,8 @@ mysql_metrics:
         WHERE domain.name != 'Default' AND domain.name != 'kubernikus' AND domain.name != 'tempest'
         GROUP BY id_mapping.public_id
       values:
-        - "user_count"
+        - "last_active_at"
+
 rbac:
   enabled: true
 
