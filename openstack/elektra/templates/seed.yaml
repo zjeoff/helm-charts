@@ -48,6 +48,7 @@ spec:
   - name: cloud_baremetal_admin
   - name: cloud_support_tools_viewer
   - name: domain_support_tools_viewer
+  - name: email_user
 
   domains:
   - name: Default
@@ -78,6 +79,8 @@ spec:
         role: cloud_volume_admin
       - project: cloud_admin@ccadmin
         role: cloud_baremetal_admin
+      - project: master@ccadmin
+        role: email_user
       - domain: Default
         role: admin
       - domain: ccadmin
@@ -113,6 +116,11 @@ spec:
 
 
   - name: ccadmin
+    projects:
+    - name: master
+      role_assignments:
+      - user: dashboard@Default
+        role: email_user # to be able to send emails via cronus
     groups:
     - name: CCADMIN_API_SUPPORT
       role_assignments:
