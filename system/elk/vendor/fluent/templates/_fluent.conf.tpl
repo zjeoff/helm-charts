@@ -18,13 +18,29 @@
 # All the auto-generated files should use the tag "file.<filename>".
 <source>
   @type tail
+  @id in_tail_container_logs
   path /var/log/containers/*.log
   exclude_path /var/log/containers/fluent*
   pos_file /var/log/es-containers.log.pos
-  time_format %Y-%m-%dT%H:%M:%S.%N
+  <parse>
+    @type multi_format
+     <pattern>
+       format regexp
+       expression /^(?<time>.+) (?<stream>stdout|stderr)( (?<logtag>.))? (?<log>.*)$/
+       time_key time
+       time_format '%Y-%m-%dT%H:%M:%S.%N%:z'
+       keep_time_key true
+     </pattern>
+     <pattern>
+       format json
+       time_format '%Y-%m-%dT%H:%M:%S.%N%:z'
+       time_key time
+       keep_time_key true
+     </pattern>
+  </parse>
+  read_from_head
+  log_level warn
   tag kubernetes.*
-  format json
-  keep_time_key true
 </source>
 
 <match fluent.**>
