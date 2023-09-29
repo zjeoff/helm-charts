@@ -136,9 +136,9 @@ images:
     pullPolicy: IfNotPresent
     imagePullSecrets: []
   vroom:
-    # repository: getsentry/vroom
-    # tag: Chart.AppVersion
-    # pullPolicy: IfNotPresent
+    repository: getsentry/vroom
+    tag: 23.8.0
+    pullPolicy: IfNotPresent
     imagePullSecrets: []
 
 serviceAccount:

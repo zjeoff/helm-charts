@@ -76,7 +76,7 @@ spec:
       {{- end }}
       containers:
       - name: snuba-init
-        image: "{{ template "snuba.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.snuba.repository }}:{{required ".Values.images.snuba.tag is missing" .Values.images.snuba.tag }}"
         command:
         - snuba
         - bootstrap

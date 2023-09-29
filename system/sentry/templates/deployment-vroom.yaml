@@ -67,7 +67,7 @@ spec:
         args:
 {{ toYaml .Values.vroom.args | indent 10 }}
 {{- end }}
-        image: "{{ template "vroom.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.vroom.repository }}:{{required ".Values.images.vroom.tag is missing" .Values.images.vroom.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.images.vroom.pullPolicy }}
         ports:
         - containerPort: {{ template "vroom.port" }}

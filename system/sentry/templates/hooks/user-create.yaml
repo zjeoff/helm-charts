@@ -69,7 +69,7 @@ spec:
       {{- end }}
       containers:
       - name: user-create-job
-        image: "{{ template "sentry.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.sentry.repository }}:{{required ".Values.images.sentry.tag is missing" .Values.images.sentry.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.images.sentry.pullPolicy }}
         command: ["/bin/bash", "-c"]
         # Create user but do not exit 1 when user already exists (exit code 3 from createuser command)

@@ -64,7 +64,7 @@ spec:
       {{- end }}
       initContainers:
         - name: {{ .Chart.Name }}-relay-init
-          image: "{{ template "relay.image" . }}"
+          image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.relay.repository }}:{{required ".Values.images.relay.tag is missing" .Values.images.relay.tag }}"
           imagePullPolicy: {{ default "IfNotPresent" .Values.images.sentry.pullPolicy }}
           args:
             - "credentials"
@@ -107,7 +107,7 @@ spec:
         args:
 {{ toYaml .Values.relay.args | indent 10 }}
 {{- end }}
-        image: "{{ template "relay.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.relay.repository }}:{{required ".Values.images.relay.tag is missing" .Values.images.relay.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.images.sentry.pullPolicy }}
         ports:
         - containerPort: {{ template "relay.port" }}

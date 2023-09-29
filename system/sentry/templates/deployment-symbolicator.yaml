@@ -62,7 +62,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}-symbolicator
-        image: "{{ template "symbolicator.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.symbolicator.repository }}:{{required ".Values.images.symbolicator.tag is missing" .Values.images.symbolicator.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.images.symbolicator.pullPolicy }}
         args: ["run", "-c", "/etc/symbolicator/config.yml"]
         ports:

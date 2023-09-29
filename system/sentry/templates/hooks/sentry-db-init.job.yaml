@@ -74,7 +74,7 @@ spec:
       {{- end }}
       containers:
       - name: db-init-job
-        image: "{{ template "sentry.image" . }}"
+        image: "{{required ".Values.global.registry is missing" .Values.global.registry }}/{{ .Values.images.sentry.repository }}:{{required ".Values.images.sentry.tag is missing" .Values.images.sentry.tag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.images.sentry.pullPolicy }}
         command: ["sentry","upgrade","--noinput"]
         env:
