@@ -513,10 +513,6 @@ Common Sentry environment variables
       name: {{ .Values.externalPostgresql.existingSecret }}
       key: {{ default "postgresql-password" .Values.externalPostgresql.existingSecretKey }}
 {{- end }}
-{{- if and (eq .Values.filestore.backend "gcs") .Values.filestore.gcs.secretName }}
-- name: GOOGLE_APPLICATION_CREDENTIALS
-  value: /var/run/secrets/google/{{ .Values.filestore.gcs.credentialsFile }}
-{{- end }}
 {{- if .Values.mail.password }}
 - name: SENTRY_EMAIL_PASSWORD
   value: {{ .Values.mail.password | quote }}
@@ -526,23 +522,6 @@ Common Sentry environment variables
     secretKeyRef:
       name: {{ .Values.mail.existingSecret }}
       key: {{ default "mail-password" .Values.mail.existingSecretKey }}
-{{- end }}
-{{- if .Values.slack.existingSecret }}
-- name: SLACK_CLIENT_ID
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.slack.existingSecret }}
-      key: "client-id"
-- name: SLACK_CLIENT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.slack.existingSecret }}
-      key: "client-secret"
-- name: SLACK_SIGNING_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.slack.existingSecret }}
-      key: "signing-secret"
 {{- end }}
 {{- if and .Values.github.existingSecret }}
 - name: GITHUB_APP_PRIVATE_KEY
@@ -565,24 +544,5 @@ Common Sentry environment variables
     secretKeyRef:
       name: {{ .Values.github.existingSecret }}
       key: {{ default "client-secret" .Values.github.existingSecretClientSecretKey }}
-{{- end }}
-{{- if .Values.google.existingSecret }}
-- name: GOOGLE_AUTH_CLIENT_ID
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.google.existingSecret }}
-      key: {{ default "client-id" .Values.google.existingSecretClientIdKey }}
-- name: GOOGLE_AUTH_CLIENT_SECRET
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.google.existingSecret }}
-      key: {{ default "client-secret" .Values.google.existingSecretClientSecretKey }}
-{{- end }}
-{{- if .Values.openai.existingSecret }}
-- name: OPENAI_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.openai.existingSecret }}
-      key: {{ default "api-token" .Values.openai.existingSecretKey }}
 {{- end }}
 {{- end -}}

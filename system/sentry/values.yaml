@@ -29,10 +29,6 @@ user:
 # adminToken:
 organizationName: Monsoon
 organizationSlug: monsoon
-image:
-  repository: sentry
-  tag: 9.1.2-r4
-  pullPolicy: IfNotPresent
 service:
   name: sentry
   type: ClusterIP
@@ -1151,22 +1147,6 @@ github: {}
 #
 #   Reference -> https://docs.sentry.io/product/integrations/source-code-mgmt/github/
 
-# https://developers.google.com/identity/sign-in/web/server-side-flow#step_1_create_a_client_id_and_client_secret
-google: {}
-# google:
-#   clientId: ""
-#   clientSecret: ""
-#   existingSecret: ""
-#   existingSecretClientIdKey: "" # by default "client-id"
-#   existingSecretClientSecretKey: "" # by default "client-secret"
-
-slack: {}
-# slack:
-#   clientId:
-#   clientSecret:
-#   signingSecret:
-#   existingSecret:
-#   Reference -> https://develop.sentry.dev/integrations/slack/
 
 openai: {}
 #   existingSecret: "xxxxx"
@@ -1223,23 +1203,6 @@ filestore:
       ## If existingClaim is specified, no PVC will be created and this claim will
       ## be used
       existingClaim: ""
-
-  gcs: {}
-    ## Point this at a pre-configured secret containing a service account. The resulting
-    ## secret will be mounted at /var/run/secrets/google
-    # secretName:
-    # credentialsFile: credentials.json
-  # bucketName:
-
-  ## Currently unconfigured and changing this has no impact on the template configuration.
-  s3: {}
-  #  accessKey:
-  #  secretKey:
-  #  bucketName:
-  #  endpointUrl:
-  #  signature_version:
-  #  region_name:
-  #  default_acl:
 
 config:
   # No YAML Extension Config Given
@@ -1517,6 +1480,18 @@ rabbitmq:
     username: guest
     password: guest
   nameOverride: ""
+  users:
+    default:
+      password: testing
+    admin:
+      password: testing
+    metrics:
+      password: testing
+      user: testing
+  metrics:
+    password : testing
+  alerts:
+    support_group: identity
 
   pdb:
     create: true
@@ -1585,6 +1560,8 @@ memcached:
     - "-m $(MEMCACHED_MEMORY_LIMIT)"
     - "-I $(MEMCACHED_MAX_ITEM_SIZE)"
   extraEnvVarsCM: "sentry-memcached"
+  alerts:
+    support_group: identity
 
 ## Prometheus Exporter / Metrics
 ##

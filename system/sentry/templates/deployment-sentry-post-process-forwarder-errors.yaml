@@ -75,7 +75,7 @@ spec:
         command: ["sentry"]
         args:
           - "run"
-          - "consumer" 
+          - "consumer"
           - "post-process-forwarder-errors"
           - "--consumer-group"
           - "post-process-forwarder"
@@ -92,10 +92,6 @@ spec:
           readOnly: true
         - mountPath: {{ .Values.filestore.filesystem.path }}
           name: sentry-data
-        {{- if and (eq .Values.filestore.backend "gcs") .Values.filestore.gcs.secretName }}
-        - name: sentry-google-cloud-key
-          mountPath: /var/run/secrets/google
-        {{ end }}
 {{- if .Values.sentry.postProcessForwardErrors.volumeMounts }}
 {{ toYaml .Values.sentry.postProcessForwardErrors.volumeMounts | indent 8 }}
 {{- end }}
@@ -126,11 +122,6 @@ spec:
       {{- end }}
       {{- else }}
         emptyDir: {}
-      {{ end }}
-      {{- if and (eq .Values.filestore.backend "gcs") .Values.filestore.gcs.secretName }}
-      - name: sentry-google-cloud-key
-        secret:
-          secretName: {{ .Values.filestore.gcs.secretName }}
       {{ end }}
 {{- if .Values.sentry.postProcessForwardErrors.volumes }}
 {{ toYaml .Values.sentry.postProcessForwardErrors.volumes | indent 6 }}
