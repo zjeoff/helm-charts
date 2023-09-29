@@ -7,26 +7,6 @@ workerReplicaCount: 1
 user:
   create: false
 
-#  SENTRY_FILESTORE_DIR
-#
-#secretKey: $(docker run --rm sentry config generate-secret-key)
-#emailHost:
-#serverEmail: '"Sentry" <root@localhost>'
-#singleOrganization: false
-#githubAppId:
-#githubApiSecret:
-#useSsl: false
-#
-#extraEnvVars:
-#  e.g.
-#  GITHUB_BASE_DOMAIN: github.example.com
-#  GITHUB_API_DOMAIN: api.github.example.com
-#
-# initial user:
-# adminEmail:
-# adminPassword:
-# Generate with: python -c 'import sys,uuid; sys.stdout.write(uuid.uuid4().hex+ uuid.uuid4().hex)
-# adminToken:
 organizationName: Monsoon
 organizationSlug: monsoon
 service:
@@ -1044,19 +1024,6 @@ system:
   ## This will generate one for you (it's must be given upon updates)
   # secretKey: "xx"
 
-mail:
-  # For example: smtp
-  backend: dummy
-  useTls: false
-  useSsl: false
-  username: ""
-  password: ""
-  # existingSecret: secret-name
-  ## set existingSecretKey if key name inside existingSecret is different from 'mail-password'
-  # existingSecretKey: secret-key-name
-  port: 25
-  host: ""
-  from: ""
 
 symbolicator:
   enabled: false
@@ -1173,37 +1140,8 @@ filestore:
 
   filesystem:
     path: /var/lib/sentry/files
-
-    ## Enable persistence using Persistent Volume Claims
-    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
-    ##
     persistence:
       enabled: true
-      ## database data Persistent Volume Storage Class
-      ## If defined, storageClassName: <storageClass>
-      ## If set to "-", storageClassName: "", which disables dynamic provisioning
-      ## If undefined (the default) or set to null, no storageClassName spec is
-      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-      ##   GKE, AWS & OpenStack)
-      ##
-      # storageClass: "-"
-      accessMode: ReadWriteOnce
-      size: 10Gi
-
-      ## Whether to mount the persistent volume to the Sentry worker and
-      ## cron deployments. This setting needs to be enabled for some advanced
-      ## Sentry features, such as private source maps. If you disable this
-      ## setting, the Sentry workers will not have access to artifacts you upload
-      ## through the web deployment.
-      ## Please note that you may need to change your accessMode to ReadWriteMany
-      ## if you plan on having the web, worker and cron deployments run on
-      ## different nodes.
-      persistentWorkers: false
-
-      ## If existingClaim is specified, no PVC will be created and this claim will
-      ## be used
-      existingClaim: ""
-
 config:
   # No YAML Extension Config Given
   configYml: {}

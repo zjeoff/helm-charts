@@ -32,7 +32,7 @@ data:
     # Github #
     ##########
     {{- with .Values.github.appId }}
-    github-app.id: {{ . }}
+    github-app.id: {{ .Values.githubAppId | quote}}
     {{- end }}
     {{- with .Values.github.appName }}
     github-app.name: {{ . | quote }}
@@ -45,12 +45,14 @@ data:
     github-app.webhook-secret: {{ . | quote }}
       {{- end }}
       {{- with .Values.github.clientId }}
-    github-app.client-id: {{ . | quote }}
+    github-app.client-id: {{ .Values.githubAppId | quote}}
       {{- end }}
       {{- with .Values.github.clientSecret }}
-    github-app.client-secret: {{ . | quote }}
+    github-app.client-secret: { secretKeyRef: { name: {{ template "fullname" . }}, key: github-api-secret } }
       {{- end }}
     {{- end }}
+    'github-login.extended-permissions'] = ['repo']
+
 
     #########
     # Redis #
@@ -68,6 +70,11 @@ data:
     ################
     # File storage #
     ################
+
+    SENTRY_OPTIONS['filestore.backend'] = 'filesystem'
+    SENTRY_OPTIONS['filestore.options'] = {
+        'location': env('SENTRY_FILESTORE_DIR'),
+    }
     # Uploaded media uses these `filestore` settings. The available
     # backends are either `filesystem` or `s3`.
     filestore.backend: {{ .Values.filestore.backend | quote }}
@@ -75,45 +82,7 @@ data:
     filestore.options:
       location: {{ .Values.filestore.filesystem.path | quote }}
     {{ end }}
-    {{- if eq .Values.filestore.backend "gcs" }}
-    filestore.options:
-      bucket_name: {{ .Values.filestore.gcs.bucketName | quote }}
-    {{ end }}
-    {{- if eq .Values.filestore.backend "s3" }}
-    filestore.options:
-      {{- if .Values.filestore.s3.accessKey }}
-      access_key: {{ .Values.filestore.s3.accessKey | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.secretKey }}
-      secret_key: {{ .Values.filestore.s3.secretKey | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.bucketName }}
-      bucket_name: {{ .Values.filestore.s3.bucketName | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.endpointUrl }}
-      endpoint_url: {{ .Values.filestore.s3.endpointUrl | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.signature_version }}
-      signature_version: {{ .Values.filestore.s3.signature_version | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.region_name }}
-      region_name: {{ .Values.filestore.s3.region_name | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.default_acl }}
-      default_acl: {{ .Values.filestore.s3.default_acl | quote }}
-      {{- end }}
-      #add comfig params for s3
-      {{- if .Values.filestore.s3.addressing_style }}
-      addressing_style: {{ .Values.filestore.s3.addressing_style | quote }}
-      {{- end }}
-      {{- if .Values.filestore.s3.location }}
-      location: {{ .Values.filestore.s3.location | quote }}
-      {{- end }}
-    {{ end }}
 
-    {{- if .Values.config.configYml }}
-{{ .Values.config.configYml | toYaml | indent 4 }}
-    {{- end }}
   sentry.conf.py: |-
     from sentry.conf.server import *  # NOQA
     from distutils.util import strtobool
@@ -285,32 +254,34 @@ data:
     SENTRY_WEB_PORT = {{ template "sentry.port" }}
     SENTRY_PUBLIC = {{ .Values.system.public | ternary "True" "False" }}
     SENTRY_WEB_OPTIONS = {
-        "http": "%s:%s" % (SENTRY_WEB_HOST, SENTRY_WEB_PORT),
-        "protocol": "uwsgi",
-        # This is needed to prevent https://git.io/fj7Lw
-        "uwsgi-socket": None,
-        # Keep this between 15s-75s as that's what Relay supports
-        "http-keepalive": {{ .Values.config.web.httpKeepalive }},
-        "http-chunked-input": True,
-        # the number of web workers
-        'workers': 3,
-        # Turn off memory reporting
-        "memory-report": False,
-        # Some stuff so uwsgi will cycle workers sensibly
-        'max-requests': 100000,
-        'max-requests-delta': 500,
-        'max-worker-lifetime': 86400,
-        # Duplicate options from sentry default just so we don't get
-        # bit by sentry changing a default value that we depend on.
-        'thunder-lock': True,
-        'log-x-forwarded-for': False,
-        'buffer-size': 32768,
-        'limit-post': 209715200,
-        'disable-logging': True,
-        'reload-on-rss': 600,
-        'ignore-sigpipe': True,
-        'ignore-write-errors': True,
-        'disable-write-exception': True,
+      "http": "%s:%s" % (SENTRY_WEB_HOST, SENTRY_WEB_PORT),
+      "protocol": "uwsgi",
+      # This is needed in order to prevent https://git.io/fj7Lw
+      "uwsgi-socket": None,
+      "so-keepalive": True,
+      # Keep this between 15s-75s as that's what Relay supports
+      "http-keepalive": 65,
+      "http-chunked-input": True,
+      # the number of web workers
+      "workers": 3,
+      "threads": 4,
+      "memory-report": False,
+      # Some stuff so uwsgi will cycle workers sensibly
+      "max-requests": 100000,
+      "max-requests-delta": 500,
+      "max-worker-lifetime": 86400,
+      # Duplicate options from sentry default just so we don't get
+      # bit by sentry changing a default value that we depend on.
+      "thunder-lock": True,
+      "log-x-forwarded-for": False,
+      "buffer-size": 32768,
+      "post-buffering": 32768,
+      "limit-post": 209715200,
+      "disable-logging": True,
+      "reload-on-rss": 600,
+      "ignore-sigpipe": True,
+      "ignore-write-errors": True,
+      "disable-write-exception": True,
     }
 
     ###########
@@ -449,44 +420,23 @@ data:
     #######################
     # Email Configuration #
     #######################
-    SENTRY_OPTIONS['mail.backend'] = os.getenv("SENTRY_EMAIL_BACKEND", {{ .Values.mail.backend | quote }})
-    SENTRY_OPTIONS['mail.use-tls'] = bool(strtobool(os.getenv("SENTRY_EMAIL_USE_TLS", {{ .Values.mail.useTls | quote }})))
-    SENTRY_OPTIONS['mail.use-ssl'] = bool(strtobool(os.getenv("SENTRY_EMAIL_USE_SSL", {{ .Values.mail.useSsl | quote }})))
-    SENTRY_OPTIONS['mail.username'] = os.getenv("SENTRY_EMAIL_USERNAME", {{ .Values.mail.username | quote }})
-    SENTRY_OPTIONS['mail.password'] = os.getenv("SENTRY_EMAIL_PASSWORD", "")
-    SENTRY_OPTIONS['mail.port'] = int(os.getenv("SENTRY_EMAIL_PORT", {{ .Values.mail.port | quote }}))
-    SENTRY_OPTIONS['mail.host'] = os.getenv("SENTRY_EMAIL_HOST", {{ .Values.mail.host | quote }})
-    SENTRY_OPTIONS['mail.from'] = os.getenv("SENTRY_EMAIL_FROM", {{ .Values.mail.from | quote }})
 
-    #########################
-    # Bitbucket Integration #
-    #########################
+    email = env('SENTRY_EMAIL_HOST') or (env('SMTP_PORT_25_TCP_ADDR') and 'smtp')
 
-    # BITBUCKET_CONSUMER_KEY = 'YOUR_BITBUCKET_CONSUMER_KEY'
-    # BITBUCKET_CONSUMER_SECRET = 'YOUR_BITBUCKET_CONSUMER_SECRET'
+    SENTRY_OPTIONS['mail.backend'] = os.getenv("SENTRY_EMAIL_BACKEND", 'smtp')
+    SENTRY_OPTIONS['mail.use-tls'] = bool(strtobool(os.getenv("SENTRY_EMAIL_USE_TLS", {{ .Values.emailUseTLS | squote }})))
+    SENTRY_OPTIONS['mail.use-ssl'] = bool(strtobool(os.getenv("SENTRY_EMAIL_USE_SSL", {{ .Values.emailUseSSL | squote }})))
+    SENTRY_OPTIONS['mail.username'] = os.getenv("SENTRY_EMAIL_USERNAME", {{ .Values.emailUser | squote }})
+    SENTRY_OPTIONS['mail.password'] = os.getenv("SENTRY_EMAIL_PASSWORD", {{ .Values.emailPassword | squote }})
+    SENTRY_OPTIONS['mail.port'] = int(os.getenv("SENTRY_EMAIL_PORT", {{ .Values.emailPort | squote }}))
+    SENTRY_OPTIONS['mail.host'] = os.getenv("SENTRY_EMAIL_HOST", {{ .Values.emailHost | squote }})
+    SENTRY_OPTIONS['mail.from'] = os.getenv("SENTRY_SERVER_EMAIL", {{ .Values.serverEmail | squote }})
 
     #########
     # Relay #
     #########
     SENTRY_RELAY_WHITELIST_PK = []
     SENTRY_RELAY_OPEN_REGISTRATION = True
-
-    #######################
-    # OpenAi Suggestions #
-    #######################
-
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    if OPENAI_API_KEY:
-      SENTRY_FEATURES["organizations:open-ai-suggestion"] = True
-
-{{- if .Values.metrics.enabled }}
-    SENTRY_METRICS_BACKEND = 'sentry.metrics.statsd.StatsdMetricsBackend'
-    SENTRY_METRICS_OPTIONS = {
-        'host': '{{ template "sentry.fullname" . }}-metrics',
-        'port': 9125,
-    }
-{{- end }}
-
 
 {{- if .Values.github.existingSecret }}
     ##########

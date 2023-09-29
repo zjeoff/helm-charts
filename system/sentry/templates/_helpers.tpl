@@ -513,15 +513,9 @@ Common Sentry environment variables
       name: {{ .Values.externalPostgresql.existingSecret }}
       key: {{ default "postgresql-password" .Values.externalPostgresql.existingSecretKey }}
 {{- end }}
-{{- if .Values.mail.password }}
+{{- if .Values.emailPassword }}
 - name: SENTRY_EMAIL_PASSWORD
-  value: {{ .Values.mail.password | quote }}
-{{- else if .Values.mail.existingSecret }}
-- name: SENTRY_EMAIL_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.mail.existingSecret }}
-      key: {{ default "mail-password" .Values.mail.existingSecretKey }}
+  value: {{ .Values.emailPassword | squote }}
 {{- end }}
 {{- if and .Values.github.existingSecret }}
 - name: GITHUB_APP_PRIVATE_KEY
