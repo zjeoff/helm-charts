@@ -1,15 +1,12 @@
 {{/* vim: set filetype=mustache: */}}
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 24 -}}
+
+{{- define "sentry.prefix" -}}
+    {{- if .Values.prefix -}}
+        {{.Values.prefix}}-
+    {{- else -}}
+    {{- end -}}
 {{- end -}}
 
-{{/*
-Create a default fully qualified app name.
-We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-*/}}
 {{- define "fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 24 -}}
@@ -21,15 +18,6 @@ We truncate at 24 chars because some Kubernetes name fields are limited to this 
 
 {{- define "redis.fullname" -}}
 {{- printf "%s-%s" .Release.Name "redis" | trunc 24 -}}
-{{- end -}}
-
-{{/* vim: set filetype=mustache: */}}
-
-{{- define "sentry.prefix" -}}
-    {{- if .Values.prefix -}}
-        {{.Values.prefix}}-
-    {{- else -}}
-    {{- end -}}
 {{- end -}}
 
 {{- define "nginx.port" -}}{{ default "8080" .Values.nginx.containerPort }}{{- end -}}
@@ -225,6 +213,8 @@ Set postgres host
 {{- define "sentry.postgresql.host" -}}
 {{- if .Values.postgresql.enabled -}}
 {{- template "sentry.postgresql.fullname" . -}}
+{{- else -}}
+{{ required "A valid .Values.externalPostgresql.host is required" .Values.externalPostgresql.host }}
 {{- end -}}
 {{- end -}}
 
@@ -244,7 +234,9 @@ Set postgres port
 */}}
 {{- define "sentry.postgresql.port" -}}
 {{- if .Values.postgresql.enabled -}}
-{{- default 5432 .Values.postgresql.primary.service.ports.postgresql }}
+{{- default 5432 }}
+{{- else -}}
+{{- required "A valid .Values.externalPostgresql.port is required" .Values.externalPostgresql.port -}}
 {{- end -}}
 {{- end -}}
 
@@ -254,6 +246,8 @@ Set postgresql username
 {{- define "sentry.postgresql.username" -}}
 {{- if .Values.postgresql.enabled -}}
 {{- default "postgres" .Values.postgresql.postgresqlUsername }}
+{{- else -}}
+{{ required "A valid .Values.externalPostgresql.username is required" .Values.externalPostgresql.username }}
 {{- end -}}
 {{- end -}}
 
@@ -263,6 +257,8 @@ Set postgresql database
 {{- define "sentry.postgresql.database" -}}
 {{- if .Values.postgresql.enabled -}}
 {{- default "sentry" .Values.postgresql.postgresqlDatabase }}
+{{- else -}}
+{{ required "A valid .Values.externalPostgresql.database is required" .Values.externalPostgresql.database }}
 {{- end -}}
 {{- end -}}
 
@@ -272,6 +268,8 @@ Set redis host
 {{- define "sentry.redis.host" -}}
 {{- if .Values.redis.enabled -}}
 {{- template "sentry.redis.fullname" . -}}-master
+{{- else -}}
+{{ required "A valid .Values.externalRedis.host is required" .Values.externalRedis.host }}
 {{- end -}}
 {{- end -}}
 
@@ -292,6 +290,8 @@ Set redis port
 {{- define "sentry.redis.port" -}}
 {{- if .Values.redis.enabled -}}
 {{- default 6379 .Values.redis.redisPort }}
+{{- else -}}
+{{ required "A valid .Values.externalRedis.port is required" .Values.externalRedis.port }}
 {{- end -}}
 {{- end -}}
 
@@ -301,6 +301,8 @@ Set redis password
 {{- define "sentry.redis.password" -}}
 {{- if .Values.redis.enabled -}}
 {{ .Values.redis.password }}
+{{- else -}}
+{{ .Values.externalRedis.password }}
 {{- end -}}
 {{- end -}}
 
@@ -499,8 +501,17 @@ Common Sentry environment variables
 - name: POSTGRES_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ default (include "sentry.postgresql.fullname" .) .Values.postgresql.auth.existingSecret }}
-      key: {{ default "postgres-password" .Values.postgresql.auth.secretKeys.adminPasswordKey }}s
+      name: {{ default (include "sentry.postgresql.fullname" .) .Values.postgresql.existingSecret }}
+      key: {{ default "postgres-password" .Values.postgresql.existingSecretKey }}
+{{- else if .Values.externalPostgresql.password }}
+- name: POSTGRES_PASSWORD
+  value: {{ .Values.externalPostgresql.password | quote }}
+{{- else if .Values.externalPostgresql.existingSecret }}
+- name: POSTGRES_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.externalPostgresql.existingSecret }}
+      key: {{ default "postgresql-password" .Values.externalPostgresql.existingSecretKey }}
 {{- end }}
 {{- if and (eq .Values.filestore.backend "gcs") .Values.filestore.gcs.secretName }}
 - name: GOOGLE_APPLICATION_CREDENTIALS

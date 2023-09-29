@@ -65,34 +65,6 @@ operator:
     tag: 0.3.0
     pullPolicy: IfNotPresent
 
-postgresql:
-  postgresDatabase: sentry
-  persistence:
-    enabled: true
-    accessMode: ReadWriteMany
-    size: 50Gi
-  resources:
-    requests:
-      memory: 10Gi
-      cpu: 4
-    limits:
-      memory: 10Gi
-      cpu: 4
-
-redis:
-  # redisPassword:
-  persistence:
-    enabled: true
-    accessMode: ReadWriteMany
-    size: 10Gi
-  resources:
-    requests:
-      memory: 5Gi
-      cpu: 2
-    limits:
-      memory: 10Gi
-      cpu: 2
-
 # Deploy Sentry Prometheus alerts.
 alerts:
   enabled: true
@@ -1476,61 +1448,61 @@ externalKafka:
 sourcemaps:
   enabled: false
 
-# redis:
-#   enabled: true
-#   auth:
-#     enabled: false
-#     sentinel: false
-#   nameOverride: sentry-redis
-#   usePassword: false
-#   ## Just omit the password field if your redis cluster doesn't use password
-#   # password: redis
-#   master:
-#     persistence:
-#       enabled: true
-#   ## Use this to enable an extra service account
-#   # serviceAccount:
-#   #   create: false
-#   #   name: sentry-redis
+redis:
+  enabled: true
+  auth:
+    enabled: false
+    sentinel: false
+  nameOverride: sentry-redis
+  usePassword: false
+  ## Just omit the password field if your redis cluster doesn't use password
+  # password: redis
+  master:
+    persistence:
+      enabled: true
+  ## Use this to enable an extra service account
+  # serviceAccount:
+  #   create: false
+  #   name: sentry-redis
 
-# ## This value is only used when redis.enabled is set to false
-# ##
-# externalRedis:
-#   ## Hostname or ip address of external redis cluster
-#   ##
-#   # host: "redis"
-#   port: 6379
-#   ## Just omit the password field if your redis cluster doesn't use password
-#   # password: redis
+## This value is only used when redis.enabled is set to false
+##
+externalRedis:
+  ## Hostname or ip address of external redis cluster
+  ##
+  # host: "redis"
+  port: 6379
+  ## Just omit the password field if your redis cluster doesn't use password
+  # password: redis
 
-# postgresql:
-#   enabled: true
-#   nameOverride: sentry-postgresql
-#   auth:
-#     database: sentry
-#   replication:
-#     enabled: false
-#     readReplicas: 2
-#     synchronousCommit: "on"
-#     numSynchronousReplicas: 1
-#     applicationName: sentry
-#   ## Use this to enable an extra service account
-#   # serviceAccount:
-#   #   enabled: false
+postgresql:
+  enabled: true
+  nameOverride: sentry-postgresql
+  auth:
+    database: sentry
+  replication:
+    enabled: false
+    readReplicas: 2
+    synchronousCommit: "on"
+    numSynchronousReplicas: 1
+    applicationName: sentry
+  ## Use this to enable an extra service account
+  # serviceAccount:
+  #   enabled: false
 
-# ## This value is only used when postgresql.enabled is set to false
-# ## Set either externalPostgresql.password or externalPostgresql.existingSecret to configure password
-# ## externalPostgresql.existingSecret should have a key of 'postgres-password' which holds the password
-# externalPostgresql:
-#   # host: postgres
-#   port: 5432
-#   username: postgres
-#   # password: postgres
-#   # existingSecret: secret-name
-#   ## set existingSecretKey if key name inside existingSecret is different from 'postgres-password'
-#   # existingSecretKey: secret-key-name
-#   database: sentry
-#   # sslMode: require
+## This value is only used when postgresql.enabled is set to false
+## Set either externalPostgresql.password or externalPostgresql.existingSecret to configure password
+## externalPostgresql.existingSecret should have a key of 'postgres-password' which holds the password
+externalPostgresql:
+  # host: postgres
+  port: 5432
+  username: postgres
+  # password: postgres
+  # existingSecret: secret-name
+  ## set existingSecretKey if key name inside existingSecret is different from 'postgres-password'
+  # existingSecretKey: secret-key-name
+  database: sentry
+  # sslMode: require
 
 rabbitmq:
   ## If disabled, Redis will be used instead as the broker.
