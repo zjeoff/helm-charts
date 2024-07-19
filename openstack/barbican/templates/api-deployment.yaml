@@ -61,7 +61,7 @@ spec:
           {{- end }}
           {{- if .Values.hsm.enabled }}
           - name: ChrystokiConfigurationPath
-            value: "/thales/safenet/lunaclient/config"
+            value: "/usr/safenet/lunaclient/config"
           {{- end }}
           {{- if .Values.api.resources.enabled }}
           resources:
@@ -131,8 +131,8 @@ spec:
               readOnly: true
             {{- end }}
         {{- if .Values.hsm.enabled }}
-            - name: luna
-              mountPath: /thales/
+            # - name: luna
+            #   mountPath: /thales/
             {{- include "utils.proxysql.volume_mount" . | indent 12 }}
             {{- include "utils.trust_bundle.volume_mount" . | indent 12 }}
         {{- include "utils.proxysql.container" . | indent 8 }}
@@ -141,7 +141,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: ChrystokiConfigurationPath
-              value: "/thales/safenet/lunaclient/config"
+              value: "/usr/safenet/lunaclient/config"
           command: [ "/bin/bash", "-c", "--" ]
           args: [ "/scripts/barbican_lunaclient.sh" ]
           {{- if .Values.hsm.resources.enabled }}
@@ -162,8 +162,8 @@ spec:
               mountPath: /scripts/barbican_lunaclient.sh
               subPath: barbican_lunaclient.sh
               readOnly: true
-            - name: luna
-              mountPath: /thales/
+            # - name: luna
+            #   mountPath: /thales/
         {{- end }}       
         - name: statsd
           {{- if hasKey .Values.global "dockerHubMirror"}}
