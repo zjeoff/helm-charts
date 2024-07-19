@@ -3,7 +3,7 @@ set -ex
 
 lunaclient () {
     NOW="$(date +%Y%m%d)"
-    cp /usr/safenet/lunaclient/Chrystoki-template.conf /usr/safenet/lunaclient/config/Chrystoki.conf
+    # cp /usr/safenet/lunaclient/Chrystoki-template.conf /usr/safenet/lunaclient/config/Chrystoki.conf
     cd /usr/safenet/lunaclient/libs/64/
     rm -f libCryptoki2_64.so
     ln -s libCryptoki2.so libCryptoki2_64.so
@@ -39,6 +39,7 @@ lunaclient () {
     /usr/safenet/lunaclient/bin/64/vtl createCert -n $HOSTNAME-$NOW
 
     #REGISTER HSM1
+    echo "REGISTER HSM01"
     /usr/safenet/lunaclient/bin/64/pscp -pw {{ .Values.lunaclient.conn.pwd }} /usr/safenet/lunaclient/config/certs/$HOSTNAME-$NOW.pem {{ .Values.lunaclient.conn.user }}@{{ .Values.lunaclient.conn.ip }}:.
     /usr/safenet/lunaclient/bin/64/pscp -pw {{ .Values.lunaclient.conn.pwd }} {{ .Values.lunaclient.conn.user }}@{{ .Values.lunaclient.conn.ip }}:server.pem /usr/safenet/lunaclient/config/certs/
     /usr/safenet/lunaclient/bin/64/vtl addserver -n {{ .Values.lunaclient.conn.ip }} -c  /usr/safenet/lunaclient/config/certs/server.pem
@@ -49,6 +50,7 @@ lunaclient () {
     
     {{- if eq .Values.hsm.ha.enabled true }}
     #REGISTER HSM2
+    echo "REGISTER HSM02"
     /usr/safenet/lunaclient/bin/64/pscp -pw {{ .Values.lunaclient.conn.pwd }} /usr/safenet/lunaclient/config/certs/$HOSTNAME-$NOW.pem {{ .Values.lunaclient.conn.user }}@{{ .Values.lunaclient.conn.ip02 }}:.
     /usr/safenet/lunaclient/bin/64/pscp -pw {{ .Values.lunaclient.conn.pwd }} {{ .Values.lunaclient.conn.user }}@{{ .Values.lunaclient.conn.ip02 }}:server.pem /usr/safenet/lunaclient/config/certs/
     /usr/safenet/lunaclient/bin/64/vtl addserver -n {{ .Values.lunaclient.conn.ip02 }} -c  /usr/safenet/lunaclient/config/certs/server.pem
