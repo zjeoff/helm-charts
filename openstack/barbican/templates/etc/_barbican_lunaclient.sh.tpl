@@ -1,7 +1,8 @@
 #!/bin/bash
 set -ex
 
-lunaclient () {
+lunaclient ()
+    {
     NOW="$(date +%Y%m%d)"
     # cp /usr/safenet/lunaclient/Chrystoki-template.conf /usr/safenet/lunaclient/config/Chrystoki.conf
     cd /usr/safenet/lunaclient/libs/64/
@@ -63,6 +64,14 @@ lunaclient () {
     cp /usr/safenet/lunaclient/config/Chrystoki.conf /etc/Chrystoki.conf
     }
 
+# Number of times to execute the lunaclient function
+iterations=2
+
 {{- if eq .Values.hsm.enabled true }}
-lunaclient
+for ((i=1; i<=iterations; i++))
+do
+  echo "Execution #$i:"
+  { time lunaclient; } 2>&1 | grep real
+  echo "----------------------"
+done
 {{- end }}
