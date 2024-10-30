@@ -59,3 +59,7 @@ cheaper-initial = {{.Values.api.cheaper}}
 workers = {{.Values.api.processes}}
 cheaper-step = 1
 {{- end }}
+
+# uWSGI Stats Server
+stats = :{{ .Values.api.uwsgi_stats_port }}
+stats-http = true
