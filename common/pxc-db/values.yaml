@@ -500,7 +500,7 @@ backup:
     schedule: "15 0 * * *"
     s3:
       config:
-        bucket: "pxc-backup-{{ .Values.global.region }}"
+        bucket: "pxc-logical-{{ .Values.global.region }}"
         prefix: "{{ .Values.name }}/"
 
 # -- Default Prometheus alerts and rules.
