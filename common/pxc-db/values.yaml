@@ -501,7 +501,7 @@ backup:
     s3:
       config:
         bucket: "pxc-logical-{{ .Values.global.region }}"
-        prefix: "{{ .Values.name }}/"
+        prefix: "{{ .Values.name }}"
 
 # -- Default Prometheus alerts and rules.
 alerts:

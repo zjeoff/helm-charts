@@ -69,6 +69,8 @@ spec:
               value: {{ tpl (.Values.backup.s3.config.region) . | quote }}
             - name: ENDPOINT
               value: {{ tpl (.Values.backup.s3.config.endpointUrl) . | quote }}
+            - name: VERIFY_TLS
+              value: "false"
           restartPolicy: OnFailure
           volumes:
           - name: backup-scripts
