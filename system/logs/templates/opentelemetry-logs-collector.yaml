@@ -13,7 +13,8 @@ spec:
   - operator: Exists
   observability:
     metrics:
-      disablePrometheusAnnotations: false
+      enableMetrics: true
+      DisablePrometheusAnnotations: true
   podAnnotations:
     prometheus.io/scrape: "false"
   env:
