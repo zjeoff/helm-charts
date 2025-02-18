@@ -13,10 +13,10 @@ spec:
   - operator: Exists
   observability:
     metrics:
-      disablePrometheusAnnotations: true
-      enableMetrics: false
-  podAnnotations:
-    prometheus.io/scrape: "false"
+    #  disablePrometheusAnnotations: true
+    #  enableMetrics: false
+#  podAnnotations:
+#    prometheus.io/scrape: "false"
   env:
     - name: NAMESPACE
       valueFrom:
@@ -73,7 +73,7 @@ spec:
             - job_name: 'internal'
               scrape_interval: 5s
               static_configs:
-                - targets: ['127.0.0.1:8888']
+                - targets: ['/metrics']
 {{- end }}
 
     processors:
@@ -261,7 +261,7 @@ spec:
 {{- if .Values.openTelemetryPlugin.openTelemetry.prometheus.podMonitor.enabled }}
       telemetry:
         metrics:
-          address: 127.0.0.1:8888
+          address: /metrics
           level: detailed
 {{- end }}
       pipelines:
