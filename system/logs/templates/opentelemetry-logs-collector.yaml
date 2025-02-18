@@ -16,8 +16,6 @@ spec:
       disablePrometheusAnnotations: true
   podAnnotations:
     prometheus.io/scrape: "false"
-  annotations:
-    prometheus.io/scrape: "false"
   env:
     - name: NAMESPACE
       valueFrom:
@@ -260,10 +258,6 @@ spec:
         - basicauth/failover_a
         - basicauth/failover_b
 {{- if .Values.openTelemetryPlugin.openTelemetry.prometheus.podMonitor.enabled }}
-      telemetry:
-        metrics:
-          address: 127.0.0.1:8888
-          level: detailed
 {{- end }}
       pipelines:
         logs/forward:
