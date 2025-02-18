@@ -84,20 +84,7 @@ spec:
 
 {{- if .Values.openTelemetryPlugin.openTelemetry.prometheus.podMonitor.enabled }}
       attributes/prometheus:
-        actions:
-          - action: insert
-            key: k8s_node_name
-            value: ${KUBE_NODE_NAME}
-          - action: insert
-            key: k8s_cluster_name
-            value: ${cluster}
-          - action: insert
-            key: region
-            value: ${region}
-          - action: delete
-            key: service_instance_id
-          - action: delete
-            key: pod
+
 {{- end }}
       attributes/cluster:
         actions:
