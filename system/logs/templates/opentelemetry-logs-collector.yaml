@@ -14,7 +14,7 @@ spec:
   observability:
     metrics:
     #  disablePrometheusAnnotations: true
-    #  enableMetrics: false
+      enableMetrics: false
 #  podAnnotations:
 #    prometheus.io/scrape: "false"
   env:
@@ -73,7 +73,7 @@ spec:
             - job_name: 'internal'
               scrape_interval: 5s
               static_configs:
-                - targets: ['/metrics']
+                - targets: ['127.0.0.1:8888']
 {{- end }}
 
     processors:
@@ -220,6 +220,8 @@ spec:
         spike_limit_percentage: 30
 
     exporters:
+      debug:
+        verbosity: basic
       opensearch/failover_a:
         http:
           auth:
@@ -261,7 +263,7 @@ spec:
 {{- if .Values.openTelemetryPlugin.openTelemetry.prometheus.podMonitor.enabled }}
       telemetry:
         metrics:
-          address: /metrics
+          address: 127.0.0.1:8888
           level: detailed
 {{- end }}
       pipelines:
