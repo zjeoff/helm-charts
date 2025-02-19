@@ -11,12 +11,6 @@ spec:
   mode: daemonset
   tolerations:
   - operator: Exists
-  observability:
-    metrics:
-    #  disablePrometheusAnnotations: true
-    #  enableMetrics: false
-#  podAnnotations:
-#    prometheus.io/scrape: "false"
   env:
     - name: NAMESPACE
       valueFrom:
@@ -74,6 +68,11 @@ spec:
               scrape_interval: 5s
               static_configs:
                 - targets: ['127.0.0.1:8888']
+              metric_relabel_configs:
+                - source_labels: [k8s_node_name]
+                  regex: ".*"
+                  action: drop
+              
 {{- end }}
 
     processors:
