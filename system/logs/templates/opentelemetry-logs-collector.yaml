@@ -69,7 +69,7 @@ spec:
               static_configs:
                 - targets: ['127.0.0.1:8888']
               metric_relabel_configs:
-                - source_labels: [k8s_node_name]
+                - source_labels: [endpoint]
                   regex: ""
                   action: drop
               
