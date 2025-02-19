@@ -70,7 +70,7 @@ spec:
                 - targets: ['127.0.0.1:8888']
               relabel_configs:
                 - source_labels: [k8s_node_name]
-                  regex: kks
+                  regex: "kks"
                   action: keep
               
 {{- end }}
