@@ -69,9 +69,9 @@ spec:
               static_configs:
                 - targets: ['127.0.0.1:8888']
               relabel_configs:
-                - source_labels: [endpoint]
+                - source_labels: [k8s_node_name]
                   regex: ".*"
-                  action: drop
+                  action: keep
               
 {{- end }}
 
