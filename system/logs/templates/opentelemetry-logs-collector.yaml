@@ -71,7 +71,7 @@ spec:
               metric_relabel_configs:
                 - source_labels: [k8s_node_name]
                   regex: ""
-                  action: keep
+                  action: drop
               
 {{- end }}
 
