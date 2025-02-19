@@ -70,7 +70,7 @@ spec:
                 - targets: ['127.0.0.1:8888']
               metric_relabel_configs:
                 - source_labels: [endpoint]
-                  regex: ""
+                  regex: ".*"
                   action: drop
               
 {{- end }}
