@@ -12,3 +12,6 @@
   tenant_name: 'tempest2'
   password: {{ .Values.tempestAdminPassword | quote }}
   project_name: 'tempest2'
+  types:
+   - reader
+   - 
