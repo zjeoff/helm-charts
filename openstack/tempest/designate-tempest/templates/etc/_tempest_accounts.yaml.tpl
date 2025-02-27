@@ -14,4 +14,4 @@
   project_name: 'tempest2'
   types:
    - reader
-   - 
+   - alt
