@@ -16,7 +16,7 @@ function cleanup_tempest_leftovers() {
       export OS_PROJECT_NAME=tempest${i}
       PROJECT_ID=$(openstack project show tempest${i} -c id -f value)
       for zone in $(openstack zone list --sudo-project-id $PROJECT_ID | grep -E "testdomain" | awk '{ print $2 }'); do
-          openstack zone delete $zone --sudo-project-id $PROJECT_ID;
+          openstack zone delete $zone --sudo-project-id $PROJECT_ID --delete-shares;
       done
 
       for tld in $(openstack tld list --sudo-project-id  $PROJECT_ID); do
