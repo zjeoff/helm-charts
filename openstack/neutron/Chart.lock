@@ -7,7 +7,7 @@ dependencies:
   version: 0.6.5
 - name: mysql_metrics
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
-  version: 0.3.6
+  version: 0.4.2
 - name: rabbitmq
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 0.15.0
@@ -23,5 +23,5 @@ dependencies:
 - name: linkerd-support
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 1.0.0
-digest: sha256:68a8a069fa4087f707ffd7a533f9d35b40982c55169dd86d869b2c89bbe25dbd
-generated: "2025-03-07T12:45:18.784122+01:00"
+digest: sha256:42fcf1f1f85fc792fa049d86012afe82d2ac3af7b0d891bc53b790b6febde51b
+generated: "2025-03-07T12:46:40.923952+01:00"
