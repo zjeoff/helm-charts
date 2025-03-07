@@ -19,9 +19,9 @@ dependencies:
   version: 1.0.0
 - name: redis
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
-  version: 1.5.3
+  version: 2.1.1
 - name: linkerd-support
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 1.0.0
-digest: sha256:2433209141b6396f2b01d9a7117022a325e0063b8825fd41691fbafc265b2923
-generated: "2025-03-07T12:41:35.448988+01:00"
+digest: sha256:37cc493d36a7f326ae82ebd41ee7834d65f736771e79ea5dc0e141568f9c3b74
+generated: "2025-03-07T12:43:01.066865+01:00"
