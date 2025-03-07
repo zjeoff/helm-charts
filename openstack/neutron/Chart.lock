@@ -13,7 +13,7 @@ dependencies:
   version: 0.15.0
 - name: utils
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
-  version: 0.19.5
+  version: 0.22.1
 - name: owner-info
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 1.0.0
@@ -23,5 +23,5 @@ dependencies:
 - name: linkerd-support
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 1.0.0
-digest: sha256:42fcf1f1f85fc792fa049d86012afe82d2ac3af7b0d891bc53b790b6febde51b
-generated: "2025-03-07T12:46:40.923952+01:00"
+digest: sha256:c364abc844af9f85daad3892b86cbdf11edac9e8b6773e7f01876f93650ae4b5
+generated: "2025-03-07T13:19:13.024815+01:00"
