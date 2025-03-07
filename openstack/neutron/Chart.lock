@@ -4,7 +4,7 @@ dependencies:
   version: 0.17.2
 - name: memcached
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
-  version: 0.5.3
+  version: 0.6.5
 - name: mysql_metrics
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 0.3.6
@@ -23,5 +23,5 @@ dependencies:
 - name: linkerd-support
   repository: oci://keppel.eu-de-1.cloud.sap/ccloud-helm
   version: 1.0.0
-digest: sha256:37cc493d36a7f326ae82ebd41ee7834d65f736771e79ea5dc0e141568f9c3b74
-generated: "2025-03-07T12:43:01.066865+01:00"
+digest: sha256:68a8a069fa4087f707ffd7a533f9d35b40982c55169dd86d869b2c89bbe25dbd
+generated: "2025-03-07T12:45:18.784122+01:00"
