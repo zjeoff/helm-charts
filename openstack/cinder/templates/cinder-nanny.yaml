@@ -11,7 +11,7 @@ metadata:
     service: cinder-nanny
 
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "{{ .Values.cinder_nanny.crontab_schedule }}"
   concurrencyPolicy: Forbid
   jobTemplate:
     metadata:
@@ -45,14 +45,14 @@ spec:
           containers:
     {{- if .Values.cinder_nanny.db_purge.enabled }}
             - name: db-consistency-and-purge
-              image: {{required ".Values.global.registry is missing" .Values.global.registry}}/cinder-nanny:{{required ".Values.cinder_nanny.image_version is missing" .Values.cinder_nanny.image_version}}
+              image: {{required ".Values.global.registry is missing" .Values.global.registry}}/loci-cinder:{{required ".Values.imageVersion is missing" .Values.imageVersion}}
               imagePullPolicy: IfNotPresent
               command:
                 - dumb-init
                 - kubernetes-entrypoint
               env:
                 - name: COMMAND
-                  value: "mkdir /scripts/;cp /var/lib/openstack/lib/python3.8/site-packages/cinder/cinder-nanny/scripts/* /scripts/;{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
+                  value: "{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
                 - name: NAMESPACE
                   valueFrom:
                     fieldRef:
@@ -69,8 +69,6 @@ spec:
                   value: {{ .Values.cinder_nanny.consistency.dry_run | quote }}
                 - name: CINDER_CONSISTENCY_FIX_LIMIT
                   value: {{ .Values.cinder_nanny.consistency.fix_limit | quote }}
-                - name: CINDER_NANNY_INTERVAL
-                  value: {{ .Values.cinder_nanny.interval | quote }}
                 - name: OS_AUTH_URL
                   value: "https://{{ include "keystone_api_endpoint_host_public" . }}:443/v3"
                 - name: OS_PROJECT_NAME
@@ -99,14 +97,14 @@ spec:
     {{- end }}
     {{- if .Values.cinder_nanny.quota_sync.enabled }}
             - name: quota-sync
-              image: {{required ".Values.global.registry is missing" .Values.global.registry}}/cinder-nanny:{{required ".Values.cinder_nanny.image_version is missing" .Values.cinder_nanny.image_version}}
+              image: {{required ".Values.global.registry is missing" .Values.global.registry}}/loci-cinder:{{required ".Values.imageVersion is missing" .Values.imageVersion}}
               imagePullPolicy: IfNotPresent
               command:
                 - dumb-init
                 - kubernetes-entrypoint
               env:
                 - name: COMMAND
-                  value: "mkdir /scripts/;cp /var/lib/openstack/lib/python3.8/site-packages/cinder/cinder-nanny/scripts/* /scripts/;{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-quota-sync.sh{{ else }}sleep inf{{ end }}"
+                  value: "{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-quota-sync.sh{{ else }}sleep inf{{ end }}"
                 - name: NAMESPACE
                   valueFrom:
                     fieldRef:
