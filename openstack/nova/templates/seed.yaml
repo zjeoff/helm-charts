@@ -93,6 +93,11 @@ spec:
         role: cloud_image_admin
       - project: service
         role: cloud_objectstore_admin
+    {{- if .Values.nanny.enabled }}
+    - name: nova_nanny{{ .Values.global.user_suffix | default "" }}
+      description: Nova Nanny
+      password: '{{ required ".Values.nanny.keystone_password is missing" .Values.nanny.keystone_password | include "resolve_secret" }}'
+    {{- end }}
     groups:
     - name: administrators
       role_assignments:
@@ -107,6 +112,14 @@ spec:
       role_assignments:
       - user: admin@Default
         role: cloud_compute_admin
+      {{- if .Values.nanny.enabled }}
+      - user: nova_nanny{{ .Values.global.user_suffix | default "" }}@Default
+        role: admin
+      - user: nova_nanny{{ .Values.global.user_suffix | default "" }}@Default
+        role: cloud_compute_admin
+      - user: nova_nanny{{ .Values.global.user_suffix | default "" }}@Default
+        role: cloud_volume_admin
+      {{- end }}
     - name: master
       role_assignments:
       - user: {{ .Values.global.nova_service_user | default "nova" }}{{ .Values.global.user_suffix | default "" }}@Default

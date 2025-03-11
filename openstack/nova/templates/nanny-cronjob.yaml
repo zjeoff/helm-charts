@@ -1,0 +1,216 @@
+{{- if .Values.nanny.enabled }}
+{{- if or .Values.nanny.db_purge.enabled .Values.nanny.consistency.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nova-nanny
+  namespace: monsoon3
+  labels:
+    system: openstack
+    service: nova-nanny
+
+spec:
+  schedule: {{ .Values.nanny.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            {{- if and $.Values.global.linkerd_enabled $.Values.global.linkerd_requested }}
+            linkerd.io/inject: enabled
+            {{- end }}
+          labels:
+            component: nova-nanny
+        spec:
+          nodeSelector:
+            zone: farm
+          restartPolicy: OnFailure
+          volumes:
+            - name: nova-etc
+              projected:
+                defaultMode: 420
+                sources:
+                - configMap:
+                    name: nova-etc
+                    items:
+                    - key: nova.conf
+                      path: nova.conf
+                    - key: nova-api.conf
+                      path: nova-api.conf
+                    - key: api-paste.ini
+                      path: api-paste.ini
+                    - key: policy.yaml
+                      path: policy.yaml
+                    - key: logging.ini
+                      path: logging.ini
+                    - key: rootwrap.conf
+                      path: rootwrap.conf
+                    - key: api-metadata.filters
+                      path: rootwrap.d/api-metadata.filters
+                    - key: release
+                      path: release
+                    {{- if .Values.audit.enabled }}
+                    - key: nova_audit_map.yaml
+                      path: nova_audit_map.yaml
+                    {{- end }}
+                    {{- if .Values.watcher.enabled }}
+                    - key: watcher.yaml
+                      path: watcher.yaml
+                    {{- end }}
+                - secret:
+                    name: nova-etc
+                    items:
+                    - key: api-db.conf
+                      path: nova.conf.d/api-db.conf
+                    - key: cell1.conf
+                      path: nova.conf.d/cell1.conf
+{{- if .Values.nanny.cell2.enabled }}
+                    - key:  {{ .Values.cell2.name }}.conf
+                      path: nova-{{ .Values.cell2.name }}.conf
+{{- end }}
+                    - key: keystoneauth-secrets.conf
+                      path: nova.conf.d/keystoneauth-secrets.conf
+                    - key: audit-middleware.conf
+                      path: nova.conf.d/audit-middleware.conf
+          containers:
+{{- if or .Values.nanny.db_purge.enabled .Values.nanny.consistency.enabled }}
+            - name: db-consistency-and-purge
+              image: {{ tuple . "api" | include "container_image_nova" }}
+              imagePullPolicy: IfNotPresent
+              command:
+                - dumb-init
+                - kubernetes-entrypoint
+              env:
+                - name: COMMAND
+                  value: "{{ if not .Values.nanny.debug }}/bin/bash /var/lib/openstack/lib/python3.10/site-packages/nova/nanny/nova-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: DEPENDENCY_SERVICE
+                  {{- if .Values.mariadb.enabled }}
+                  value: "nova-mariadb,nova-api"
+                  {{- else }}
+                  value: "nova-postgresql,nova-api"
+                  {{- end }}
+                - name: NOVA_DB_PURGE_ENABLED
+                  value: {{ .Values.nanny.db_purge.enabled | quote }}
+                - name: NOVA_DB_PURGE_DRY_RUN
+                  value: {{ .Values.nanny.db_purge.dry_run | quote }}
+                - name: NOVA_DB_PURGE_OLDER_THAN
+                  value: {{ .Values.nanny.db_purge.older_than | quote }}
+                - name: NOVA_DB_PURGE_MAX_NUMBER
+                  value: {{ .Values.nanny.db_purge.max_number | quote }}
+                - name: NOVA_CONSISTENCY_ENABLED
+                  value: {{ .Values.nanny.consistency.enabled | quote }}
+                - name: NOVA_CONSISTENCY_DRY_RUN
+                  value: {{ .Values.nanny.consistency.dry_run | quote }}
+                - name: NOVA_CONSISTENCY_OLDER_THAN
+                  value: {{ .Values.nanny.consistency.older_than | quote }}
+                - name: NOVA_CONSISTENCY_MAX_INSTANCE_FAULTS
+                  value: {{ .Values.nanny.consistency.max_instance_faults | quote }}
+                - name: NOVA_CONSISTENCY_FIX_LIMIT
+                  value: {{ .Values.nanny.consistency.fix_limit | quote }}
+                - name: NOVA_QUEENS_INSTANCE_MAPPING_ENABLED
+                  value: {{ .Values.nanny.consistency.queens_instance_mapping_enabled | quote }}
+                - name: NOVA_QUEENS_INSTANCE_MAPPING_DRY_RUN
+                  value: {{ .Values.nanny.consistency.queens_instance_mapping_dry_run | quote }}
+                - name: NOVA_CELL2_ENABLED
+                  value: "false"
+                - name: OS_AUTH_URL
+                  value: "https://{{ include "keystone_api_endpoint_host_public" . }}:443/v3"
+                - name: OS_PROJECT_NAME
+                  value: "cloud_admin"
+                - name: OS_PROJECT_DOMAIN_NAME
+                  value: "ccadmin"
+                - name: OS_USERNAME
+                  value: "nova_nanny"
+                - name: OS_USER_DOMAIN_NAME
+                  value: "Default"
+                - name: OS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: nova-nanny-secret
+                      key:  nanny_os_password
+              volumeMounts:
+                - mountPath: /nova-etc
+                  name: nova-etc
+              resources:
+                requests:
+                  memory: "5000Mi"
+                  cpu: "1000m"
+                limits:
+                  memory: "5000Mi"
+                  cpu: "1000m"
+{{- if .Values.nanny.cell2.enabled }}
+            - name: db-consistency-and-purge-cell2
+              image: {{ tuple . "api" | include "container_image_nova" }}
+              imagePullPolicy: IfNotPresent
+              command:
+                - dumb-init
+                - kubernetes-entrypoint
+              env:
+                - name: COMMAND
+                  value: "{{ if not .Values.nanny.debug }}/bin/bash /var/lib/openstack/lib/python3.10/site-packages/nova/nanny/nova-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: DEPENDENCY_SERVICE
+                  {{- if .Values.mariadb.enabled }}
+                  value: "nova-mariadb,nova-api"
+                  {{- else }}
+                  value: "nova-postgresql,nova-api"
+                  {{- end }}
+                - name: NOVA_DB_PURGE_ENABLED
+                  value: {{ .Values.nanny.db_purge.enabled | quote }}
+                - name: NOVA_DB_PURGE_DRY_RUN
+                  value: {{ .Values.nanny.db_purge.dry_run | quote }}
+                - name: NOVA_DB_PURGE_OLDER_THAN
+                  value: {{ .Values.nanny.db_purge.older_than | quote }}
+                - name: NOVA_DB_PURGE_MAX_NUMBER
+                  value: {{ .Values.nanny.db_purge.max_number | quote }}
+                - name: NOVA_CONSISTENCY_ENABLED
+                  value: {{ .Values.nanny.consistency.enabled | quote }}
+                - name: NOVA_CONSISTENCY_DRY_RUN
+                  value: {{ .Values.nanny.consistency.dry_run | quote }}
+                - name: NOVA_CONSISTENCY_OLDER_THAN
+                  value: {{ .Values.nanny.consistency.older_than | quote }}
+                - name: NOVA_CONSISTENCY_MAX_INSTANCE_FAULTS
+                  value: {{ .Values.nanny.consistency.max_instance_faults | quote }}
+                - name: NOVA_QUEENS_INSTANCE_MAPPING_ENABLED
+                  value: "false"
+                - name: NOVA_QUEENS_INSTANCE_MAPPING_DRY_RUN
+                  value: "true"
+                - name: NOVA_CELL2_ENABLED
+                  value: "true"
+                - name: OS_AUTH_URL
+                  value: "https://{{ include "keystone_api_endpoint_host_public" . }}:443/v3"
+                - name: OS_PROJECT_NAME
+                  value: "cloud_admin"
+                - name: OS_PROJECT_DOMAIN_NAME
+                  value: "ccadmin"
+                - name: OS_USERNAME
+                  value: "nova_nanny"
+                - name: OS_USER_DOMAIN_NAME
+                  value: "Default"
+                - name: OS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: nova-nanny-secret
+                      key:  nanny_os_password
+              volumeMounts:
+                - mountPath: /nova-etc
+                  name: nova-etc
+              resources:
+                requests:
+                  memory: "1000Mi"
+                  cpu: "25m"
+                limits:
+                  memory: "1000Mi"
+                  cpu: "100m"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
