@@ -1,17 +1,16 @@
-
-{{- if .Values.cinder_nanny.enabled }}
-{{- if or .Values.cinder_nanny.db_purge.enabled .Values.cinder_nanny.quota_sync.enabled }}
+{{- if .Values.nanny.enabled }}
+{{- if or .Values.nanny.db_purge.enabled .Values.nanny.quota_sync.enabled }}
 kind: CronJob
 apiVersion: batch/v1
 metadata:
-  name: cinder-nanny-cronjob-test
+  name: cinder-nanny-cronjob
   namespace: monsoon3
   labels:
     system: openstack
     service: cinder-nanny
 
 spec:
-  schedule: "{{ .Values.cinder_nanny.crontab_schedule }}"
+  schedule: "{{ .Values.nanny.crontab_schedule }}"
   concurrencyPolicy: Forbid
   jobTemplate:
     metadata:
@@ -30,6 +29,7 @@ spec:
         spec:
           nodeSelector:
             zone: farm
+          restartPolicy: OnFailure
           volumes:
           - name: cinder-etc
             projected:
@@ -43,7 +43,7 @@ spec:
                     path: cinder.conf.d/secrets.conf
                   name: cinder-secrets
           containers:
-    {{- if .Values.cinder_nanny.db_purge.enabled }}
+    {{- if .Values.nanny.db_purge.enabled }}
             - name: db-consistency-and-purge
               image: {{required ".Values.global.registry is missing" .Values.global.registry}}/loci-cinder:{{required ".Values.imageVersion is missing" .Values.imageVersion}}
               imagePullPolicy: IfNotPresent
@@ -52,7 +52,7 @@ spec:
                 - kubernetes-entrypoint
               env:
                 - name: COMMAND
-                  value: "{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
+                  value: "{{ if not .Values.nanny.debug }}/bin/bash /var/lib/openstack/scripts/cinder-db-consistency-and-purge.sh{{ else }}sleep inf{{ end }}"
                 - name: NAMESPACE
                   valueFrom:
                     fieldRef:
@@ -60,15 +60,15 @@ spec:
                 - name: DEPENDENCY_SERVICE
                   value: "cinder-mariadb,cinder-api"
                 - name: CINDER_DB_PURGE_ENABLED
-                  value: {{ .Values.cinder_nanny.db_purge.enabled | quote }}
+                  value: {{ .Values.nanny.db_purge.enabled | quote }}
                 - name: CINDER_DB_PURGE_OLDER_THAN
-                  value: {{ .Values.cinder_nanny.db_purge.older_than | quote }}
+                  value: {{ .Values.nanny.db_purge.older_than | quote }}
                 - name: CINDER_CONSISTENCY_ENABLED
-                  value: {{ .Values.cinder_nanny.consistency.enabled | quote }}
+                  value: {{ .Values.nanny.consistency.enabled | quote }}
                 - name: CINDER_CONSISTENCY_DRY_RUN
-                  value: {{ .Values.cinder_nanny.consistency.dry_run | quote }}
+                  value: {{ .Values.nanny.consistency.dry_run | quote }}
                 - name: CINDER_CONSISTENCY_FIX_LIMIT
-                  value: {{ .Values.cinder_nanny.consistency.fix_limit | quote }}
+                  value: {{ .Values.nanny.consistency.fix_limit | quote }}
                 - name: OS_AUTH_URL
                   value: "https://{{ include "keystone_api_endpoint_host_public" . }}:443/v3"
                 - name: OS_PROJECT_NAME
@@ -82,8 +82,8 @@ spec:
                 - name: OS_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: cinder-nanny-secret
-                      key:  nova_nanny_os_password
+                      name: cinder-nanny-cronjob-secret
+                      key:  cinder_nanny_os_password
               volumeMounts:
                 - mountPath: /cinder-etc
                   name: cinder-etc
@@ -95,7 +95,7 @@ spec:
                   memory: "500Mi"
                   cpu: "100m"
     {{- end }}
-    {{- if .Values.cinder_nanny.quota_sync.enabled }}
+    {{- if .Values.nanny.quota_sync.enabled }}
             - name: quota-sync
               image: {{required ".Values.global.registry is missing" .Values.global.registry}}/loci-cinder:{{required ".Values.imageVersion is missing" .Values.imageVersion}}
               imagePullPolicy: IfNotPresent
@@ -104,7 +104,7 @@ spec:
                 - kubernetes-entrypoint
               env:
                 - name: COMMAND
-                  value: "{{ if not .Values.cinder_nanny.debug }}/bin/bash /scripts/cinder-quota-sync.sh{{ else }}sleep inf{{ end }}"
+                  value: "{{ if not .Values.nanny.debug }}/bin/bash /var/lib/openstack/scripts/cinder-quota-sync.sh{{ else }}sleep inf{{ end }}"
                 - name: NAMESPACE
                   valueFrom:
                     fieldRef:
@@ -112,11 +112,11 @@ spec:
                 - name: DEPENDENCY_SERVICE
                   value: "cinder-mariadb,cinder-api"
                 - name: CINDER_QUOTA_SYNC_ENABLED
-                  value: {{ .Values.cinder_nanny.quota_sync.enabled | quote }}
+                  value: {{ .Values.nanny.quota_sync.enabled | quote }}
                 - name: CINDER_QUOTA_SYNC_DRY_RUN
-                  value: {{ .Values.cinder_nanny.quota_sync.dry_run | quote }}
+                  value: {{ .Values.nanny.quota_sync.dry_run | quote }}
                 - name: CINDER_NANNY_INTERVAL
-                  value: {{ .Values.cinder_nanny.interval | quote }}
+                  value: {{ .Values.nanny.interval | quote }}
               volumeMounts:
                 - mountPath: /cinder-etc
                   name: cinder-etc
