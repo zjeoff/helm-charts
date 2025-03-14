@@ -87,6 +87,18 @@ spec:
           secret:
             secretName: neutron-aci-secrets
         - name: neutron-etc-region
+          projected:
+            sources:
+            {{- $char_limit := 750000 -}}
+            {{- $config_data := include (print $.Template.BasePath "/etc/_ml2-conf-aci.ini.tpl") . -}}
+            {{- range (divf (len $config_data) $char_limit | ceil | int | until) }}
+            - configMap:
+                name: neutron-etc-region-{{ printf "%03d" . }}
+                items:
+                - key: ml2-conf-aci.ini
+                  path: {{ printf "%03d" . }}-ml2-conf-aci.ini
+            {{- end }}
+        - name: neutron-etc-region
           configMap:
             name: neutron-etc-region
         - name: neutron-etc-vendor

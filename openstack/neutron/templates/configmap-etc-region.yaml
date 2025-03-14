@@ -1,16 +1,19 @@
+{{- $char_limit := 750000 -}}
+{{- $config_data := include (print $.Template.BasePath "/etc/_ml2-conf-aci.ini.tpl") . -}}
+{{- range (divf (len $config_data) $char_limit | ceil | int | until) }}
+{{- $start := (mul . $char_limit) -}}
+{{- $end := (sub (mul (add . 1) $char_limit) 1) }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: neutron-etc-region
+  name: neutron-etc-region-{{ printf "%03d" . }}
   labels:
     system: openstack
     type: configuration
     component: neutron
 
-
 data:
   ml2-conf-aci.ini: |
-{{ include (print .Template.BasePath "/etc/_ml2-conf-aci.ini.tpl") . | indent 4 }}
-
-
-
+    {{- substr (int $start) (int $end) $config_data | nindent 4 }}
+{{- end }}
