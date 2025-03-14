@@ -44,8 +44,8 @@ spec:
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
-      {{- if .Values.persistence.enabled }}
       initContainers:
+      {{- if .Values.persistence.enabled }}
       - name: volume-permissions
         image: "{{include "dockerHubMirror" .}}/library/busybox"
         imagePullPolicy: {{ default "IfNotPresent" .Values.imagePullPolicy | quote }}
@@ -57,6 +57,17 @@ spec:
         securityContext:
           runAsUser: 0
         volumeMounts:
+          - mountPath: /var/lib/rabbitmq
+            name: rabbitmq-persistent-storage
+      {{- end }}
+      {{- if .Values.global.rabbitmq.native_sidecar.enabled }}
+      - name: user-credential-updater
+        image: "{{ include "dockerRegistry" . }}/{{ .Values.credentialUpdater.image }}:{{.Values.credentialUpdater.imageTag }}"
+        imagePullPolicy: {{ default "IfNotPresent" .Values.imagePullPolicy | quote }}
+        restartPolicy: Always
+        volumeMounts:
+          - mountPath: /etc/rabbitmq/secrets
+            name: rabbitmq-users-config
           - mountPath: /var/lib/rabbitmq
             name: rabbitmq-persistent-storage
       {{- end }}
@@ -127,6 +138,7 @@ spec:
           - mountPath: /etc/rabbitmq/ssl
             name: ssl
         {{- end }}
+      {{- if not .Values.global.rabbitmq.native_sidecar.enabled }}
       - name: user-credential-updater
         image: "{{ include "dockerRegistry" . }}/{{ .Values.credentialUpdater.image }}:{{.Values.credentialUpdater.imageTag }}"
         imagePullPolicy: {{ default "IfNotPresent" .Values.imagePullPolicy | quote }}
@@ -135,6 +147,7 @@ spec:
             name: rabbitmq-users-config
           - mountPath: /var/lib/rabbitmq
             name: rabbitmq-persistent-storage
+      {{- end }}
       priorityClassName: {{ .Values.priority_class | default "critical-infrastructure" | quote }}
       volumes:
       {{- if not .Values.persistence.enabled }}

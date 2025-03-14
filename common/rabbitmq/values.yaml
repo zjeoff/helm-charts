@@ -6,6 +6,9 @@
 global:
   user_suffix: ""
   master_password: ""
+  rabbitmq:
+    native_sidecar:
+      enabled: true
 
 image: library/rabbitmq
 imageTag: 4.0.6-management
